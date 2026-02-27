@@ -16,31 +16,36 @@ def root():
 
 @app.post("/ask")
 def ask_ai(data: Message):
-    user_message = data.message
+    try:
+        user_message = data.message
 
-    headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json"
-    }
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
 
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": "You are Rubina, a powerful personal AI assistant."},
-            {"role": "user", "content": user_message}
-        ]
-    }
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": "You are Rubina, a powerful personal AI assistant."},
+                {"role": "user", "content": user_message}
+            ]
+        }
 
-    response = requests.post(
-        "https://api.openai.com/v1/chat/completions",
-        headers=headers,
-        json=payload
-    )
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload
+        )
 
-    result = response.json()
+        result = response.json()
 
-    reply = result["choices"][0]["message"]["content"]
+        if "error" in result:
+            return {"error": result["error"]}
 
-    return {
-        "reply": reply
-    }
+        reply = result["choices"][0]["message"]["content"]
+
+        return {"reply": reply}
+
+    except Exception as e:
+        return {"server_error": str(e)}
